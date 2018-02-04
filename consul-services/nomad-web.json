@@ -1,0 +1,1 @@
+{"service": {"name": "nomad-web", "tags": ["nomad"], "port": 4646}}

@@ -1,0 +1,16 @@
+[Unit]
+Description=HashiCorp Nomad Agent
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+Restart=on-failure
+ExecStart=/opt/bin/nomad agent -config /etc/nomad.hcl
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGINT
+User=nomad
+Group=nomad
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+[coreos:children]
+masters
+workers
+
+[masters]
+192.168.56.3
+192.168.56.4
+192.168.56.5
+
+[workers]
+192.168.56.6
+192.168.56.7

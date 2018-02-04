@@ -1,0 +1,118 @@
+---
+passwd:
+  users:
+    - name: "shearna"
+      password_hash: "$6$saltysaltysalt$8lAIcrry7qFxMTkSu9z5IbHaelndbEiZz6.o/0Eo9F/GApXBK33sOfCwgqFXNFzGUO3WihIytuGPjHHz5bDBO1"
+      ssh_authorized_keys:
+      - "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAgkx1s/CHzYf5ducIHC1kk9s3jdQULU7D9KyovA/z1dJ5gUbot82G3UUYlAyMYJ8xaP9rR04bxsWjS9cenAeoHmAmfP5nTW2lFe/NQJJXxHer55uur+ZKiaXnzK5KpKpvZQu+e4zhTNgYcvSIUjKS15egWcP0IHrghDAyrojSQXWWL0q+prqYNmJWCPhhG+Pkibf3h3vRJ188vsiggtpfChe0IC46fjI5bU7Vm+TxrGG9NFW1Q4iQU6aid10JkJwEQ+vEVZ/OZfeFKNBNLyONwjs4eXH2LlTiIDGpjozvs51QSldlQyilmFN83No05ig1fz8AutzkZNaPYyiEIR4Pvw=="
+      groups:
+      - "sudo"
+      shell: "/bin/bash"
+    - name: "consul"
+      system: true
+    - name: "nomad"
+      system: true
+update:
+  group: "stable"
+systemd:
+  units:
+    - name: "consul.service"
+      enabled: true
+      contents: |
+        [Unit]
+        Description=HashiCorp Consul Agent
+        Requires=network-online.target
+        After=network-online.target
+        
+        [Service]
+        Type=simple
+        Restart=on-failure
+        ExecStart=/opt/bin/consul agent -server -bootstrap-expect=3 -data-dir=/var/lib/consul -enable-script-checks=true -config-dir=/etc/consul.d
+        ExecReload=/bin/kill -HUP $MAINPID
+        KillSignal=SIGINT
+        User=consul
+        Group=consul
+        
+        [Install]
+        WantedBy=multi-user.target
+    - name: "nomad.service"
+      enabled: true
+      contents: |
+        [Unit]
+        Description=HashiCorp Nomad Agent
+        Requires=network-online.target
+        After=network-online.target
+        
+        [Service]
+        Type=simple
+        Restart=on-failure
+        ExecStart=/opt/bin/nomad agent -config /etc/nomad.hcl
+        ExecReload=/bin/kill -HUP $MAINPID
+        KillSignal=SIGINT
+        User=root
+        Group=root
+        
+        [Install]
+        WantedBy=multi-user.target
+storage:
+  files:
+    - filesystem: "root"
+      path:       "/etc/hostname"
+      mode:       0644
+      contents:
+        inline: "{HOSTNAME}"
+    - filesystem: "root"
+      path: "/opt/bin/consul"
+      contents:
+        remote:
+          url: "http://192.168.56.1:8000/binaries/consul_1.0.3"
+          verification:
+            hash:
+              function: "sha512"
+              sum: "fb856688b0c4458b8c634374cfb8904e582dadd806928d5f14d6ccbb3f440e85aac5b950027733ae0293788e816988fe44ae754bb6ca2c945396d0bc63a83254"
+      mode: 0755
+    - filesystem: "root"
+      path: "/opt/bin/nomad"
+      contents:
+        remote:
+          url: "http://192.168.56.1:8000/binaries/nomad_0.7.1"
+          verification:
+            hash:
+              function: "sha512"
+              sum: "8ff35e47640fcbb00f1fc5514a22b2292b67e2323a1f2e4ef7925a895890505c9bd97627b5aad5fdae246dff4d50ba08dc7b6c6b67154f1c796e97f57ac5d2d3"
+      mode: 0755
+    - filesystem: "root"
+      path: "/etc/nomad.hcl"
+      contents:
+        remote:
+          url: "http://192.168.56.1:8000/config/nomad-server.hcl"
+      mode: 0644
+  directories:
+    - filesystem: "root"
+      path: "/etc/consul.d"
+      user:
+        name: "consul"
+      group:
+        name: "consul"
+      mode: 0755
+    - filesystem: "root"
+      path: "/var/lib/consul"
+      user:
+        name: "consul"
+      group:
+        name: "consul"
+      mode: 0755
+    - filesystem: "root"
+      path: "/etc/nomad.d"
+      user:
+        name: "nomad"
+      group:
+        name: "nomad"
+      mode: 0755
+    - filesystem: "root"
+      path: "/var/lib/nomad"
+      user:
+        name: "nomad"
+      group:
+        name: "nomad"
+      mode: 0755

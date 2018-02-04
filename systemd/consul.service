@@ -1,0 +1,16 @@
+[Unit]
+Description=HashiCorp Consul Agent
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+Restart=on-failure
+ExecStart=/opt/bin/consul agent -server -bootstrap-expect=3 -data-dir=/var/lib/consul -enable-script-checks=true -config-dir=/etc/consul.d
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGINT
+User=consul
+Group=consul
+
+[Install]
+WantedBy=multi-user.target
